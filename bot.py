@@ -9,7 +9,7 @@ from utils import temp_utils
 from database.data_base import db
 from aiohttp import web
 import concurrent.futures
-from plugins.commands import start_forward
+from plugins.functions import start_forward
 from plugins import web_server
 import logging
 import pytz
