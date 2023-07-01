@@ -70,7 +70,7 @@ async def forward_cmd(bot, message):
     try:
         temp_utils.UTILS[int(message.from_user.id)] = {
             'last_msg_id': int(last_msg_id),
-            'source_chat_id': int(source_chat_id),
+            'source_chat_id': source_chat_id,
             'target_chat_id': int(user['target_chat'])
         }
         button = [[
