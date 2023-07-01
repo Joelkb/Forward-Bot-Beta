@@ -61,7 +61,8 @@ class DB:
         return self.usr.find({})
     
     async def get_user(self, id):
-        return self.usr.find_one({'id': int(id)})
+        user = await self.usr.find_one({'id': int(id)})
+        return user
     
     async def count_users(self):
         total = await self.usr.count_documents({})
