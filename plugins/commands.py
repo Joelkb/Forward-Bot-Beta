@@ -121,6 +121,30 @@ async def skip_msgs(bot, message):
     else:
         await message.reply("Give me a skip number")
 
+@Client.on_message(filters.command('set_target'))
+async def set_target(bot, message):
+    content = message.text
+    try:
+        target_id = content.split(" ", 1)[1]
+    except:
+        return await message.reply_text(
+            text="<b>Hey give a channel ID where I'm admin along with the command !</b>"
+        )
+    try:
+        target_id = int(target_id)
+    except:
+        return await message.reply_text(
+            text="Give me a valid chat ID"
+        )
+    if target_id and target_id is not None:
+        await db.update_any(message.from_user.id, 'target_chat', int(target_id))
+        return await message.reply_text(
+            text=f"Successfully set target chat ID to {target_id}"
+        )
+    else:
+        return await message.reply_text(
+            text="Give me a valid chat ID"
+        )
 
 async def start_forward(bot, userid):
     util = temp_utils.UTILS.get(int(userid))
