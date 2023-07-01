@@ -6,7 +6,7 @@ from utils import temp_utils
 from database.data_base import db
 from pyrogram import Client, filters, enums
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from pyrogram.errors import ChannelInvalid, UsernameInvalid, UsernameNotModified
+from pyrogram.errors.exceptions.bad_request_400 import ChannelInvalid, UsernameInvalid, UsernameNotModified
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 lock = asyncio.Lock()
@@ -58,10 +58,11 @@ async def forward_cmd(bot, message):
                 chat_id=message.from_user.id,
                 text="<b>Fist add your target channel ID using /set_target command !</b>"
             )
-        else:
-            pass
     else:
         await db.new_user(message.from_user.id, message.from_user.first_name, message.from_user.username)
+        return await message.reply_text(
+            text="Hey, Add a target chat ID using /set_target command !"
+        )
     await db.update_any(message.from_user.id, 'last_msg_id', f'{last_msg_id}')
     await db.update_any(message.from_user.id, 'source_chat_id', f'{source_chat_id}')
     temp_utils.UTILS[int(message.from_user.id)] = {
