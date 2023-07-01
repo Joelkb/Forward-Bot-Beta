@@ -3,3 +3,4 @@ tgcrypto
 pytz
 aiohttp
 datetime
+motor==2.5.1
