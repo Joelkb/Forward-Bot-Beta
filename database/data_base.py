@@ -1,5 +1,8 @@
 import motor.motor_asyncio
 from vars import DB_NAME, DB_URI
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class DB:
     """
