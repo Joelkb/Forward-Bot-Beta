@@ -54,7 +54,7 @@ class Bot(Client):
         users = await db.get_forwarding()
         if users is not None:
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                futures = [executor.submit(start_forward, self, user['id']) for user in users]
+                futures = [executor.submit(start_forward, self, user['id'], user['skip']) for user in users]
                 concurrent.futures.wait(futures)
 
         

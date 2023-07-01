@@ -3,6 +3,7 @@ from pyrogram import Client
 from script import scripts
 from utils import temp_utils
 import logging
+from database.data_base import db
 from .functions import start_forward
 
 logger = logging.getLogger(__name__)
@@ -61,5 +62,6 @@ async def query_handler(bot: Client, query: CallbackQuery):
         ident, userid = query.data.split("#")
         if int(query.from_user.id) != int(userid):
             return await query.answer("You can't touch this !")
+        user = await db.get_user(int(userid))
         await query.message.delete()
-        await start_forward(bot, userid)
+        await start_forward(bot, userid, user['skip'])

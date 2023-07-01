@@ -32,8 +32,9 @@ class DB:
             username = username,
             fetched = 0,
             last_msg_id = 0,
-            source_chat = None,
-            target_chat = None,
+            source_chat = 0,
+            target_chat = 0,
+            skip = 0,
             on_process = False,
             is_complete = True,
             is_banned = False

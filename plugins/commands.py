@@ -44,6 +44,7 @@ async def skip_msgs(bot, message):
             skip = int(skip)
         except:
             return await message.reply("Skip number should be an integer.")
+        await db.update_any(message.from_user.id, 'skip', int(skip))
         await message.reply(f"Successfully set SKIP number as {skip}")
         temp_utils.CURRENT = int(skip)
     else:

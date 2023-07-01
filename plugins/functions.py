@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 lock = asyncio.Lock()
 
-async def start_forward(bot, userid):
+async def start_forward(bot, userid, skip):
     util = temp_utils.UTILS.get(int(userid))
     if util is not None:
         source_chat_id = util.get('source_chat_id')
@@ -31,7 +31,7 @@ async def start_forward(bot, userid):
         text="<b>Starting Forward Process...</b>",
         reply_markup = InlineKeyboardMarkup(btn)
     )
-    skipped = int(temp_utils.CURRENT)
+    skipped = int(skip)
     total = 0
     forwarded = 0
     empty = 0
@@ -53,7 +53,7 @@ async def start_forward(bot, userid):
             temp_utils.CANCEL = False
             await db.update_any(userid, 'on_process', True)
             await db.update_any(userid, 'is_complete', False)
-            async for msg in bot.iter_messages(source_chat_id, int(last_msg_id), int(temp_utils.CURRENT)):
+            async for msg in bot.iter_messages(source_chat_id, int(last_msg_id), int(skip)):
                 if temp_utils.CANCEL:
                     status = 'Cancelled !'
                     await active_msg.edit(f"<b>Successfully Cancelled!\n\nTotal: {total}\nSkipped: {skipped}\nForwarded: {forwarded}\nEmpty Message: {empty}\nNot Media: {notmedia}\nUnsupported Media: {unsupported}\nMessages Left: {left}\n\nStatus: {status}</b>")

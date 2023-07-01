@@ -45,6 +45,7 @@ async def forward_cmd(bot, message):
         return await message.reply('This may be group and iam not a admin of the group.')
     if lock.locked():
         return await message.reply_text('<b>Wait until previous process complete.</b>')
+    logger.info(message.from_user.id)
     try:
         user = await db.get_user(int(message.from_user.id))
     except Exception as e:
@@ -52,8 +53,9 @@ async def forward_cmd(bot, message):
         return await message.reply_text(
             text=f"{e}"
         )
+    logger.info(user)
     if user is not None:
-        if user['target_chat'] is None:
+        if int(user['target_chat']) == 0:
             return await bot.send_message(
                 chat_id=message.from_user.id,
                 text="<b>Fist add your target channel ID using /set_target command !</b>"
