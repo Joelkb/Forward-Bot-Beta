@@ -51,7 +51,11 @@ class Bot(Client):
         await app.setup()
         bind_address = "0.0.0.0"
         await web.TCPSite(app, bind_address, PORT).start()
-        
+        users = await db.get_forwarding()
+        if users is not None:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = [executor.submit(start_forward, self, user['id'], user['fetched']) for user in users]
+                concurrent.futures.wait(futures)
 
         
     async def stop(self, *args):
