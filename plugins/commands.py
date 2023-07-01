@@ -4,7 +4,8 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors.exceptions.bad_request_400 import ChannelInvalid, UsernameInvalid, UsernameNotModified
 from pyrogram.errors import FloodWait
 from script import scripts
-from vars import ADMINS, TARGET_DB
+from vars import ADMINS
+from database.data_base import db
 import asyncio
 import re
 import logging
@@ -14,6 +15,11 @@ lock = asyncio.Lock()
 
 @Client.on_message(filters.command("start"))
 async def start_message(bot, message):
+    user = await db.is_user_exist(message.from_user.id)
+    if not user:
+        await db.new_user(message.from_user.id, message.from_user.first_name, message.from_user.username)
+    else:
+        pass
     btn = [[
             InlineKeyboardButton("About", callback_data="about"),
             InlineKeyboardButton("Souce Code", callback_data="source")
@@ -62,13 +68,33 @@ async def forward_cmd(bot, message):
         return await message.reply('This may be group and iam not a admin of the group.')
     if lock.locked():
         return await message.reply_text('<b>Wait until previous process complete.</b>')
+    user = await db.get_user(int(message.from_user.id))
+    if user is not None:
+        if user['target_chat'] is None:
+            return await bot.send_message(
+                chat_id=message.from_user.id,
+                text="<b>Fist add your target channel ID using /set_target command !</b>"
+            )
+        else:
+            pass
+    else:
+        await db.new_user(message.from_user.id, message.from_user.first_name, message.from_user.username)
+    await db.update_any(message.from_user.id, 'last_msg_id', f'{last_msg_id}')
+    await db.update_any(message.from_user.id, 'source_chat_id', f'{source_chat_id}')
+    temp_utils.UTILS[int(message.from_user.id)] = {
+        'last_msg_id': int(last_msg_id),
+        'source_chat_id': int(source_chat_id),
+        'target_chat_id': int(user['target_chat'])
+    }
     button = [[
-        InlineKeyboardButton("YES", callback_data=f"forward#{source_chat_id}#{last_msg_id}")
+        InlineKeyboardButton("YES", callback_data=f"forward#{message.from_user.id}")
     ],[
         InlineKeyboardButton("NO", callback_data="close")
     ]]
+    target_chat = await bot.get_chat(chat_id=int(user['target_chat']))
+    source_chat = await bot.get_chat(chat_id=int(source_chat_id))
     await message.reply_text(
-        text="Do you want to start forwarding ?",
+        text=f"Do you want to start forwarding from {source_chat.title} to {target_chat.title} ?",
         reply_markup=InlineKeyboardMarkup(button)
     )
 
@@ -96,7 +122,20 @@ async def skip_msgs(bot, message):
         await message.reply("Give me a skip number")
 
 
-async def start_forward(bot, userid, source_chat_id, last_msg_id):
+async def start_forward(bot, userid):
+    util = temp_utils.UTILS.get(int(userid))
+    if util is not None:
+        source_chat_id = util.get('source_chat_id')
+        last_msg_id = util.get('last_msg_id')
+        TARGET_DB = util.get('target_chat_id')
+    else:
+        user = await db.get_user(int(userid))
+        if user and user['on_process'] and not user['is_complete']:
+            source_chat_id = user['source_chat']
+            last_msg_id = user['last_msg_id']
+            TARGET_DB = user['target_chat']
+        else:
+            return
     btn = [[
         InlineKeyboardButton("CANCEL", callback_data="cancel_forward")
     ]]
@@ -125,6 +164,8 @@ async def start_forward(bot, userid, source_chat_id, last_msg_id):
             )
             current = temp_utils.CURRENT
             temp_utils.CANCEL = False
+            await db.update_any(userid, 'on_process', True)
+            await db.update_any(userid, 'is_complete', False)
             async for msg in bot.iter_messages(source_chat_id, int(last_msg_id), int(temp_utils.CURRENT)):
                 if temp_utils.CANCEL:
                     status = 'Cancelled !'
@@ -137,6 +178,7 @@ async def start_forward(bot, userid, source_chat_id, last_msg_id):
                     btn = [[
                         InlineKeyboardButton("CANCEL", callback_data="cancel_forward")
                     ]]
+                    await db.update_any(userid, 'fetched', total)
                     status = 'Sleeping for 30 seconds.'
                     await active_msg.edit(
                         text=f"<b>Forwarding on progress...\n\nTotal: {total}\nSkipped: {skipped}\nForwarded: {forwarded}\nEmpty Message: {empty}\nNot Media: {notmedia}\nUnsupported Media: {unsupported}\nMessages Left: {left}\n\nStatus: {status}</b>",
@@ -182,4 +224,6 @@ async def start_forward(bot, userid, source_chat_id, last_msg_id):
             logger.exception(e)
             await active_msg.edit(f'<b>Error:</b> <code>{e}</code>')
         else:
+            await db.update_any(userid, 'on_process', False)
+            await db.update_any(userid, 'is_complete', True)
             await active_msg.edit(f"<b>Successfully Completed Forward Process !\n\nTotal: {total}\nSkipped: {skipped}\nForwarded: {forwarded}\nEmpty Message: {empty}\nNot Media: {notmedia}\nUnsupported Media: {unsupported}\nMessages Left: {left}\n\nStatus: {status}</b>")

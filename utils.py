@@ -6,3 +6,4 @@ class temp_utils(object):
     ME = None
     CURRENT = int(os.environ.get("SKIP", 0))
     CANCEL = False
+    UTILS = {}

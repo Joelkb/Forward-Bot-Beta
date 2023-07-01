@@ -6,7 +6,10 @@ from typing import Union, Optional, AsyncGenerator
 from script import scripts
 from pyrogram import types
 from utils import temp_utils
+from database.data_base import db
 from aiohttp import web
+import concurrent.futures
+from plugins.commands import start_forward
 from plugins import web_server
 import logging
 import pytz
@@ -48,6 +51,12 @@ class Bot(Client):
         await app.setup()
         bind_address = "0.0.0.0"
         await web.TCPSite(app, bind_address, PORT).start()
+        users = await db.get_forwarding()
+        if users is not None:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = [executor.submit(start_forward, self, user['id']) for user in users]
+                concurrent.futures.wait(futures)
+
         
     async def stop(self, *args):
         await super().stop()

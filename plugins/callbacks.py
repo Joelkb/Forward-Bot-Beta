@@ -58,6 +58,8 @@ async def query_handler(bot: Client, query: CallbackQuery):
             reply_markup=InlineKeyboardMarkup(btn)
         )
     elif query.data.startswith("forward"):
-        ident, source_chat_id, last_msg_id = query.data.split("#")
+        ident, userid = query.data.split("#")
+        if int(query.from_user.id) != int(userid):
+            return await query.answer("You can't touch this !")
         await query.message.delete()
-        await start_forward(bot, query.from_user.id, source_chat_id, last_msg_id)
+        await start_forward(bot, userid)
