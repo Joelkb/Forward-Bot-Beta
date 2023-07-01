@@ -49,7 +49,7 @@ async def start_forward(bot, userid, skip):
                 text=f"<b>Forwarding on progress...\n\nTotal: {total}\nSkipped: {skipped}\nForwarded: {forwarded}\nEmpty Message: {empty}\nNot Media: {notmedia}\nUnsupported Media: {unsupported}\nMessages Left: {left}\n\nStatus: {status}</b>",
                 reply_markup=InlineKeyboardMarkup(btn)
             )
-            current = temp_utils.CURRENT
+            current = int(skip)
             temp_utils.CANCEL = False
             await db.update_any(userid, 'on_process', True)
             await db.update_any(userid, 'is_complete', False)
@@ -58,8 +58,8 @@ async def start_forward(bot, userid, skip):
                     status = 'Cancelled !'
                     await active_msg.edit(f"<b>Successfully Cancelled!\n\nTotal: {total}\nSkipped: {skipped}\nForwarded: {forwarded}\nEmpty Message: {empty}\nNot Media: {notmedia}\nUnsupported Media: {unsupported}\nMessages Left: {left}\n\nStatus: {status}</b>")
                     break
-                left = int(last_msg_id)-int(total)
                 total = current
+                left = int(last_msg_id)-int(total)
                 current += 1
                 if current % 20 == 0:
                     btn = [[
