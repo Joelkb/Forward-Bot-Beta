@@ -47,10 +47,6 @@ class Bot(Client):
         now = datetime.now(tz)
         time = now.strftime("%H:%M:%S %p")
         await self.send_message(chat_id=LOG_CHANNEL, text=scripts.RESTART_TXT.format(today, time))
-        app = web.AppRunner(await web_server())
-        await app.setup()
-        bind_address = "0.0.0.0"
-        await web.TCPSite(app, bind_address, PORT).start()
         try:
             users = await db.get_forwarding()
             if users is not None:
@@ -64,6 +60,10 @@ class Bot(Client):
                     chat_id=int(admin),
                     text=f"Error: Starting Pending Forwards || {e}"
                 )
+        app = web.AppRunner(await web_server())
+        await app.setup()
+        bind_address = "0.0.0.0"
+        await web.TCPSite(app, bind_address, PORT).start()
 
         
     async def stop(self, *args):
