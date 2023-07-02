@@ -47,7 +47,8 @@ async def query_handler(bot: Client, query: CallbackQuery):
             reply_markup=InlineKeyboardMarkup(btn)
         )
     elif query.data == "cancel_forward":
-        temp_utils.CANCEL = True
+        temp_utils.CANCEL[int(query.from_user.id)] = True
+        await query.answer("Cancelling Process !\n\nIf the bot is sleeping, It will cancell only after the sleeping is over !", show_alert=True)
     elif query.data == "help":
         btn = [[
             InlineKeyboardButton("Go Back", callback_data="home"),

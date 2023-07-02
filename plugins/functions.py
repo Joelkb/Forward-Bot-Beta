@@ -50,11 +50,11 @@ async def start_forward(bot, userid, skip):
                 reply_markup=InlineKeyboardMarkup(btn)
             )
             current = int(skip)
-            temp_utils.CANCEL = False
+            temp_utils.CANCEL[int(userid)] = False
             await db.update_any(userid, 'on_process', True)
             await db.update_any(userid, 'is_complete', False)
             async for msg in bot.iter_messages(source_chat_id, int(last_msg_id), int(skip)):
-                if temp_utils.CANCEL:
+                if temp_utils.CANCEL.get(int(userid)):
                     status = 'Cancelled !'
                     await active_msg.edit(f"<b>Successfully Cancelled!\n\nTotal: {total}\nSkipped: {skipped}\nForwarded: {forwarded}\nEmpty Message: {empty}\nNot Media: {notmedia}\nUnsupported Media: {unsupported}\nMessages Left: {left}\n\nStatus: {status}</b>")
                     break
