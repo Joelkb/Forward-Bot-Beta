@@ -21,14 +21,14 @@ logging.config.fileConfig('logging.conf')
 logging.getLogger().setLevel(logging.INFO)
 logging.getLogger("pyrogram").setLevel(logging.ERROR)
 
-async def fetch_from_db():
+async def fetch_from_db(bot):
     try:
         users = await db.get_forwarding()
-        temp_utils.List.append(users)
+        await gather_task(bot, users)
     except Exception as e:
         logging.exception(e)
         for admin in ADMINS:
-            await Client.send_message(
+            await bot.send_message(
                 chat_id=int(admin),
                 text=f"Error: Starting Pending Forwards || {e}"
             )
@@ -63,6 +63,7 @@ class Bot(Client):
         await app.setup()
         bind_address = "0.0.0.0"
         await web.TCPSite(app, bind_address, PORT).start()
+        await fetch_from_db(self)
 
         
     async def stop(self, *args):
@@ -108,10 +109,5 @@ class Bot(Client):
                 yield message
                 current += 1
 
-asyncio.run(fetch_from_db())
-if len(temp_utils.List) == 1:
-    asyncio.run(gather_task(Client, temp_utils.List[0]))
-else:
-    asyncio.run(gather_task(Client, temp_utils.List[int(len(temp_utils.List)-1)]))
 app = Bot()
 app.run()
