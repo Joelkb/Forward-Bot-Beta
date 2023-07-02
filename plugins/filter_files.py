@@ -44,15 +44,7 @@ async def forward_cmd(bot, message):
         return await message.reply('This may be group and iam not a admin of the group.')
     if lock.locked():
         return await message.reply_text('<b>Wait until previous process complete.</b>')
-    logger.info(message.from_user.id)
-    try:
-        user = await db.get_user(int(message.from_user.id))
-    except Exception as e:
-        logger.exception(e)
-        return await message.reply_text(
-            text=f"{e}"
-        )
-    logger.info(user)
+    user = await db.get_user(int(message.from_user.id))
     if user is not None:
         if int(user['target_chat']) == 0:
             return await bot.send_message(
@@ -66,23 +58,19 @@ async def forward_cmd(bot, message):
         )
     await db.update_any(message.from_user.id, 'last_msg_id', f'{last_msg_id}')
     await db.update_any(message.from_user.id, 'source_chat', f'{source_chat_id}')
-    try:
-        temp_utils.UTILS[int(message.from_user.id)] = {
-            'last_msg_id': int(last_msg_id),
-            'source_chat_id': source_chat_id,
-            'target_chat_id': int(user['target_chat'])
-        }
-        button = [[
-            InlineKeyboardButton("YES", callback_data=f"forward#{message.from_user.id}")
-        ],[
-            InlineKeyboardButton("NO", callback_data="close")
-        ]]
-        target_chat = await bot.get_chat(chat_id=int(user['target_chat']))
-        source_chat = await bot.get_chat(source_chat_id)
-        await message.reply_text(
-            text=f"Do you want to start forwarding from {source_chat.title} to {target_chat.title} ?",
-            reply_markup=InlineKeyboardMarkup(button)
-        )
-    except Exception as e:
-        logger.exception(e)
-        return await message.reply_text(e)
+    temp_utils.UTILS[int(message.from_user.id)] = {
+        'last_msg_id': int(last_msg_id),
+        'source_chat_id': source_chat_id,
+        'target_chat_id': int(user['target_chat'])
+    }
+    button = [[
+        InlineKeyboardButton("YES", callback_data=f"forward#{message.from_user.id}")
+    ],[
+        InlineKeyboardButton("NO", callback_data="close")
+    ]]
+    target_chat = await bot.get_chat(chat_id=int(user['target_chat']))
+    source_chat = await bot.get_chat(source_chat_id)
+    await message.reply_text(
+        text=f"Do you want to start forwarding from {source_chat.title} to {target_chat.title} ?",
+        reply_markup=InlineKeyboardMarkup(button)
+    )

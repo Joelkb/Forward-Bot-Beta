@@ -1,7 +1,7 @@
 from pyrogram import Client, __version__
 from pyrogram.raw.all import layer
 from datetime import date, datetime
-from vars import SESSION, API_HASH, API_ID, BOT_TOKEN, LOG_CHANNEL, PORT
+from vars import SESSION, API_HASH, API_ID, BOT_TOKEN, LOG_CHANNEL, PORT, ADMINS
 from typing import Union, Optional, AsyncGenerator
 from script import scripts
 from pyrogram import types
@@ -51,11 +51,19 @@ class Bot(Client):
         await app.setup()
         bind_address = "0.0.0.0"
         await web.TCPSite(app, bind_address, PORT).start()
-        users = await db.get_forwarding()
-        if users is not None:
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                futures = [executor.submit(start_forward, self, user['id'], user['fetched']) for user in users]
-                concurrent.futures.wait(futures)
+        try:
+            users = await db.get_forwarding()
+            if users is not None:
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    futures = [executor.submit(start_forward, self, user['id'], user['fetched']) for user in users]
+                    concurrent.futures.wait(futures)
+        except Exception as e:
+            logging.exception(e)
+            for admin in ADMINS:
+                await self.send_message(
+                    chat_id=int(admin),
+                    text=f"Error: Starting Pending Forwards || {e}"
+                )
 
         
     async def stop(self, *args):
