@@ -8,12 +8,10 @@ from pyrogram import types
 from utils import temp_utils
 from database.data_base import db
 from aiohttp import web
-import concurrent.futures
 from plugins.functions import gather_task
 from plugins import web_server
 import logging
 import pytz
-import asyncio
 import logging.config
 
 #Get logging configuration
