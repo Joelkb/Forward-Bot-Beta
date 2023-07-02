@@ -114,3 +114,10 @@ async def start_forward(bot, userid, skip):
             await db.update_any(userid, 'on_process', False)
             await db.update_any(userid, 'is_complete', True)
             await active_msg.edit(f"<b>Successfully Completed Forward Process !\n\nTotal: {total}\nSkipped: {skipped}\nForwarded: {forwarded}\nEmpty Message: {empty}\nNot Media: {notmedia}\nUnsupported Media: {unsupported}\nMessages Left: {left}\n\nStatus: {status}</b>")
+
+async def gather_task(bot, users):
+    tasks = []
+    for user in users:
+        task = asyncio.create_task(start_forward(bot, user['id'], user['fetched']))
+        tasks.append(task)
+    await asyncio.gather(*tasks)

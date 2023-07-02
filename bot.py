@@ -9,10 +9,11 @@ from utils import temp_utils
 from database.data_base import db
 from aiohttp import web
 import concurrent.futures
-from plugins.functions import start_forward
+from plugins.functions import gather_task
 from plugins import web_server
 import logging
 import pytz
+import asyncio
 import logging.config
 
 #Get logging configuration
@@ -49,10 +50,7 @@ class Bot(Client):
         await self.send_message(chat_id=LOG_CHANNEL, text=scripts.RESTART_TXT.format(today, time))
         try:
             users = await db.get_forwarding()
-            if users is not None:
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    futures = [executor.submit(start_forward, self, user['id'], user['fetched']) for user in users]
-                    concurrent.futures.wait(futures)
+            asyncio.run(gather_task(self, users))
         except Exception as e:
             logging.exception(e)
             for admin in ADMINS:
